@@ -37,7 +37,7 @@ const DashboardLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Blogs', href: '/', icon: Globe },
+    { name: 'Blogs', href: '/dashboard/blogs', icon: Globe },
     { name: 'Widgets', href: '/dashboard/widgets', icon: Boxes },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
@@ -96,7 +96,7 @@ const DashboardLayout: React.FC = () => {
                     <path d="M16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" fill="currentColor"/>
                   </svg>
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">AffiliateAI</span>
+                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Afflient.ai</span>
               </NavLink>
             </div>
             
@@ -215,7 +215,7 @@ const DashboardLayout: React.FC = () => {
                     <path d="M16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" fill="currentColor"/>
                   </svg>
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">AffiliateAI</span>
+                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Afflient.ai</span>
               </div>
               
               <nav className="mt-5 px-2 space-y-1">
