@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center">
               <Sparkles className="h-8 w-8 text-blue-600 dark:text-blue-500" />
-              <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Afflient</span>
+              <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Afflient.ai</span>
             </Link>
             <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
               Empower your blog with AI-driven affiliate recommendations. Increase your revenue while delivering value to your readers.
