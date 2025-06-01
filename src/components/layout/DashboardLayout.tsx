@@ -37,7 +37,7 @@ const DashboardLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Blogs', href: '/dashboard/blogs', icon: Globe },
+    { name: 'Blogs', href: '/', icon: Globe },
     { name: 'Widgets', href: '/dashboard/widgets', icon: Boxes },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
