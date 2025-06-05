@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Globe, ArrowRight, Copy, CheckCircle, AlertCircle, Code,
-  Wordpress, Layout, Box, FileCode, ChevronDown
-} from 'lucide-react';
+import { Globe, ArrowRight, Copy, CheckCircle, AlertCircle, Code, WholeWord as Wordpress, Layout, Box, FileCode, ChevronDown } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import Input from '../../../../components/ui/Input';
 import { useAuthStore } from '../../../../store/authStore';
