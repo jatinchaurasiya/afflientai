@@ -132,7 +132,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-            &copy; {new Date().getFullYear()} AffiliateAI. All rights reserved.
+            &copy; {new Date().getFullYear()} AfflientAI. All rights reserved.
           </p>
         </div>
       </div>
