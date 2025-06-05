@@ -68,7 +68,7 @@ const DashboardHome: React.FC = () => {
       // For now, we'll use mock data
       
       // Generate mock timeseries data
-      const days = dateRange === '7d' ? 7 : 30;
+      const days = dateRange === '7d' ? 7 : 15 : 30;
       const mockTimeseries = Array.from({ length: days }).map((_, i) => {
         const date = format(subDays(new Date(), days - 1 - i), 'yyyy-MM-dd');
         const impressions = Math.floor(Math.random() * 1000) + 500;
