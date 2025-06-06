@@ -14,7 +14,10 @@ import {
   ChevronDown,
   Bell,
   Link2,
-  Bot
+  Bot,
+  Palette,
+  Brain,
+  Zap
 } from 'lucide-react';
 import Header from './Header';
 import { useAuthStore } from '../../store/authStore';
@@ -39,18 +42,21 @@ const DashboardLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Websites', href: '/dashboard/websites', icon: Globe },
     { name: 'Blogs', href: '/dashboard/blogs', icon: Globe },
     { name: 'Affiliate Links', href: '/dashboard/affiliate-links', icon: Link2 },
+    { name: 'Smart Popups', href: '/dashboard/popups', icon: Palette },
     { name: 'Automation', href: '/dashboard/automation', icon: Bot },
+    { name: 'Predictive AI', href: '/dashboard/predictive', icon: Brain },
     { name: 'Widgets', href: '/dashboard/widgets', icon: Boxes },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
   
   const bottomNavigation = [
     { name: 'Help & Support', href: '/dashboard/support', icon: HelpCircle },
     { name: 'Invite Team', href: '/dashboard/invite', icon: Users },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
   const isCurrentPath = (path: string) => {
@@ -94,13 +100,12 @@ const DashboardLayout: React.FC = () => {
               </button>
               
               <NavLink to="/" className="flex items-center">
-                <div className="bg-blue-600 text-white p-2 rounded-lg">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 9L12 4L5 9V20H19V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" fill="currentColor"/>
-                  </svg>
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-lg">
+                  <Zap size={24} />
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Afflient.ai</span>
+                <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Afflient.ai
+                </span>
               </NavLink>
             </div>
             
@@ -152,7 +157,7 @@ const DashboardLayout: React.FC = () => {
                     id="user-menu-button"
                   >
                     <span className="sr-only">Open user menu</span>
-                    <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center overflow-hidden">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center overflow-hidden">
                       {user?.avatar_url ? (
                         <img 
                           src={user.avatar_url} 
@@ -213,13 +218,12 @@ const DashboardLayout: React.FC = () => {
             
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
-                <div className="bg-blue-600 text-white p-2 rounded-lg">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 9L12 4L5 9V20H19V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" fill="currentColor"/>
-                  </svg>
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-lg">
+                  <Zap size={24} />
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Afflient.ai</span>
+                <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Afflient.ai
+                </span>
               </div>
               
               <nav className="mt-5 px-2 space-y-1">
@@ -230,9 +234,9 @@ const DashboardLayout: React.FC = () => {
                     className={({ isActive }) =>
                       `${
                         isCurrentPath(item.href)
-                          ? 'bg-blue-50 text-blue-600 dark:bg-gray-800 dark:text-blue-500'
+                          ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 dark:from-blue-900/20 dark:to-purple-900/20 dark:text-blue-500'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-500'
-                      } group flex items-center px-2 py-2 text-base font-medium rounded-md`
+                      } group flex items-center px-2 py-2 text-base font-medium rounded-md transition-all duration-200`
                     }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -249,7 +253,7 @@ const DashboardLayout: React.FC = () => {
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 pb-3">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center">
                     {user?.full_name?.[0] || user?.email[0] || 'U'}
                   </div>
                 </div>
@@ -264,12 +268,23 @@ const DashboardLayout: React.FC = () => {
               </div>
               
               <div className="mt-3 px-2 space-y-1">
+                {bottomNavigation.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <item.icon className="inline mr-3 h-5 w-5" />
+                    {item.name}
+                  </NavLink>
+                ))}
                 <button
                   onClick={() => {
                     signOut();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="block w-full px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                  className="block w-full px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-900 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
                 >
                   Sign out
                 </button>
@@ -290,9 +305,9 @@ const DashboardLayout: React.FC = () => {
                     className={({ isActive }) =>
                       `${
                         isCurrentPath(item.href)
-                          ? 'bg-blue-50 text-blue-600 dark:bg-gray-800 dark:text-blue-500'
+                          ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 dark:from-blue-900/20 dark:to-purple-900/20 dark:text-blue-500 border-r-2 border-blue-600'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-500'
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors`
+                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200`
                     }
                   >
                     <item.icon
@@ -313,9 +328,9 @@ const DashboardLayout: React.FC = () => {
                   className={({ isActive }) =>
                     `${
                       isCurrentPath(item.href)
-                        ? 'bg-blue-50 text-blue-600 dark:bg-gray-800 dark:text-blue-500'
+                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 dark:from-blue-900/20 dark:to-purple-900/20 dark:text-blue-500'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-500'
-                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md mb-1 transition-colors`
+                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md mb-1 transition-all duration-200`
                   }
                 >
                   <item.icon
@@ -328,7 +343,7 @@ const DashboardLayout: React.FC = () => {
               
               <button
                 onClick={signOut}
-                className="w-full mt-2 flex items-center px-2 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+                className="w-full mt-2 flex items-center px-2 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-all duration-200"
               >
                 <svg className="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

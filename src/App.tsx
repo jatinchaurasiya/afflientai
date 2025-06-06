@@ -22,6 +22,9 @@ import BlogDetails from './pages/Dashboard/Blogs/BlogDetails';
 import AffiliateLinksPage from './pages/Dashboard/AffiliateLinks/AffiliateLinksPage';
 import LinkRedirect from './pages/Dashboard/AffiliateLinks/LinkRedirect';
 import AutomationDashboard from './pages/Dashboard/Automation/AutomationDashboard';
+import WebsiteIntegration from './pages/Dashboard/Websites/WebsiteIntegration';
+import PopupBuilder from './pages/Dashboard/SmartPopups/PopupBuilder';
+import PredictiveAnalyticsDashboard from './pages/Dashboard/PredictiveAnalytics/PredictiveAnalyticsDashboard';
 
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
 
@@ -33,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/signin\" replace />;
+    return <Navigate to="/signin" replace />;
   }
   
   return <>{children}</>;
@@ -66,15 +69,18 @@ function App() {
           </ProtectedRoute>
         }>
           <Route index element={<DashboardHome />} />
+          <Route path="websites" element={<WebsiteIntegration />} />
           <Route path="blogs" element={<BlogList />} />
           <Route path="blogs/new" element={<BlogSetup />} />
           <Route path="blogs/:blogId" element={<BlogDetails />} />
           <Route path="affiliate-links" element={<AffiliateLinksPage />} />
+          <Route path="popups" element={<PopupBuilder />} />
           <Route path="automation" element={<AutomationDashboard />} />
+          <Route path="predictive" element={<PredictiveAnalyticsDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="billing" element={<BillingDashboard />} />
           <Route path="widgets" element={<CreateWidget />} />
-          <Route path="settings" element={<Navigate to="/dashboard\" replace />} />
+          <Route path="settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         
         {/* Onboarding flow */}
@@ -90,7 +96,7 @@ function App() {
         </Route>
         
         {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </SentryRoutes>
     </Router>
   );
