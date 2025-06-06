@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, Users, DollarSign, MousePointer, Calendar, Download, Filter,
-  Globe, Link2, Bot, Brain, Zap, AlertTriangle, CheckCircle, ArrowRight
+  Globe, Link2, Bot, Brain, Zap, AlertTriangle, CheckCircle, ArrowRight, Palette
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useAuthStore } from '../../store/authStore';
