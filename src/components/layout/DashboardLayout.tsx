@@ -13,7 +13,8 @@ import {
   X,
   ChevronDown,
   Bell,
-  Link2
+  Link2,
+  Bot
 } from 'lucide-react';
 import Header from './Header';
 import { useAuthStore } from '../../store/authStore';
@@ -40,6 +41,7 @@ const DashboardLayout: React.FC = () => {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Blogs', href: '/dashboard/blogs', icon: Globe },
     { name: 'Affiliate Links', href: '/dashboard/affiliate-links', icon: Link2 },
+    { name: 'Automation', href: '/dashboard/automation', icon: Bot },
     { name: 'Widgets', href: '/dashboard/widgets', icon: Boxes },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },

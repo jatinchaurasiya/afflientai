@@ -21,6 +21,7 @@ import BlogSetup from './pages/Dashboard/Blogs/OnboardingFlow/BlogSetup';
 import BlogDetails from './pages/Dashboard/Blogs/BlogDetails';
 import AffiliateLinksPage from './pages/Dashboard/AffiliateLinks/AffiliateLinksPage';
 import LinkRedirect from './pages/Dashboard/AffiliateLinks/LinkRedirect';
+import AutomationDashboard from './pages/Dashboard/Automation/AutomationDashboard';
 
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
 
@@ -32,7 +33,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/signin\" replace />;
+    return <Navigate to="/signin" replace />;
   }
   
   return <>{children}</>;
@@ -69,10 +70,11 @@ function App() {
           <Route path="blogs/new" element={<BlogSetup />} />
           <Route path="blogs/:blogId" element={<BlogDetails />} />
           <Route path="affiliate-links" element={<AffiliateLinksPage />} />
+          <Route path="automation" element={<AutomationDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="billing" element={<BillingDashboard />} />
           <Route path="widgets" element={<CreateWidget />} />
-          <Route path="settings" element={<Navigate to="/dashboard\" replace />} />
+          <Route path="settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         
         {/* Onboarding flow */}
@@ -88,7 +90,7 @@ function App() {
         </Route>
         
         {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </SentryRoutes>
     </Router>
   );
