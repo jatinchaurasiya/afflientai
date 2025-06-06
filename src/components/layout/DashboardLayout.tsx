@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   ChevronDown,
-  Bell
+  Bell,
+  Link2
 } from 'lucide-react';
 import Header from './Header';
 import { useAuthStore } from '../../store/authStore';
@@ -38,6 +39,7 @@ const DashboardLayout: React.FC = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Blogs', href: '/dashboard/blogs', icon: Globe },
+    { name: 'Affiliate Links', href: '/dashboard/affiliate-links', icon: Link2 },
     { name: 'Widgets', href: '/dashboard/widgets', icon: Boxes },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
