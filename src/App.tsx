@@ -18,6 +18,7 @@ import BillingDashboard from './pages/Billing/BillingDashboard';
 import LoadingScreen from './components/ui/LoadingScreen';
 import BlogList from './pages/Dashboard/Blogs/BlogList';
 import BlogSetup from './pages/Dashboard/Blogs/OnboardingFlow/BlogSetup';
+import BlogDetails from './pages/Dashboard/Blogs/BlogDetails';
 
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
 
@@ -29,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/signin\" replace />;
+    return <Navigate to="/signin" replace />;
   }
   
   return <>{children}</>;
@@ -61,10 +62,11 @@ function App() {
           <Route index element={<DashboardHome />} />
           <Route path="blogs" element={<BlogList />} />
           <Route path="blogs/new" element={<BlogSetup />} />
+          <Route path="blogs/:blogId" element={<BlogDetails />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="billing" element={<BillingDashboard />} />
           <Route path="widgets" element={<CreateWidget />} />
-          <Route path="settings" element={<Navigate to="/dashboard\" replace />} />
+          <Route path="settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         
         {/* Onboarding flow */}
@@ -80,7 +82,7 @@ function App() {
         </Route>
         
         {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </SentryRoutes>
     </Router>
   );
