@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Plus, CheckCircle, AlertCircle, Loader2, Edit3, Trash2, RefreshCw } from 'lucide-react';
+import { ShoppingBag, Plus, CheckCircle, AlertCircle, Loader2, Edit3, Trash2, RefreshCw, Info, ExternalLink } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { useAuthStore } from '../../../store/authStore';
@@ -32,6 +32,7 @@ interface PlatformInfo {
     placeholder: string;
     required: boolean;
   }[];
+  instructions?: string[];
 }
 
 const AffiliateAccountsPage: React.FC = () => {
@@ -44,6 +45,7 @@ const AffiliateAccountsPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const platforms: Record<PlatformType, PlatformInfo> = {
     amazon: {
@@ -55,6 +57,31 @@ const AffiliateAccountsPage: React.FC = () => {
         { name: 'associate_tag', label: 'Associate Tag', type: 'text', placeholder: 'yourtag-20', required: true },
         { name: 'api_key', label: 'Access Key ID', type: 'password', placeholder: 'AKIAIOSFODNN7EXAMPLE', required: true },
         { name: 'api_secret', label: 'Secret Access Key', type: 'password', placeholder: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY', required: true }
+      ],
+      instructions: [
+        '✅ **Step 1: Get Your Associate Tag**',
+        '• Go to Amazon Associates Central (https://affiliate-program.amazon.com)',
+        '• Log in with your affiliate account',
+        '• Click on your email/username in the top right → Account Settings',
+        '• Under Account Information, find your Tracking ID (this is your Associate Tag)',
+        '',
+        '✅ **Step 2: Get Access Key ID & Secret Access Key**',
+        '**Prerequisites:**',
+        '• Approved Amazon Associates account',
+        '• At least 3 qualifying sales to activate Product Advertising API access',
+        '',
+        '**Steps to get API keys:**',
+        '• From Amazon Associates Central, go to Tools → Product Advertising API',
+        '• Click "Join" or "Manage Your Credentials"',
+        '• You\'ll be redirected to AWS Security Credentials page',
+        '• Click "Create Credentials" and copy the keys:',
+        '  - Access Key ID: Public key for your app',
+        '  - Secret Access Key: Private key (keep this secret!)',
+        '',
+        '⚠️ **Important Notes:**',
+        '• Keep your Secret Access Key secure and never share it',
+        '• You need at least 3 sales before API access is granted',
+        '• API keys may take 24-48 hours to become active'
       ]
     },
     ebay: {
@@ -324,11 +351,19 @@ const AffiliateAccountsPage: React.FC = () => {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
           >
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
-              Connect Affiliate Account
-            </h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                Connect Affiliate Account
+              </h3>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              >
+                <AlertCircle size={24} />
+              </button>
+            </div>
             
             {/* Platform Selection */}
             <div className="mb-6">
@@ -339,7 +374,10 @@ const AffiliateAccountsPage: React.FC = () => {
                 {Object.entries(platforms).map(([key, platform]) => (
                   <button
                     key={key}
-                    onClick={() => setSelectedPlatform(key as PlatformType)}
+                    onClick={() => {
+                      setSelectedPlatform(key as PlatformType);
+                      setShowInstructions(false);
+                    }}
                     className={`flex items-center p-4 rounded-lg border text-left ${
                       selectedPlatform === key
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -349,7 +387,7 @@ const AffiliateAccountsPage: React.FC = () => {
                     <div className={`${platform.color} p-2 rounded-lg text-white mr-3`}>
                       {platform.icon}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium text-gray-900 dark:text-white">{platform.name}</h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {platform.description}
@@ -359,6 +397,70 @@ const AffiliateAccountsPage: React.FC = () => {
                 ))}
               </div>
             </div>
+
+            {/* Instructions Toggle for Amazon */}
+            {selectedPlatform === 'amazon' && (
+              <div className="mb-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowInstructions(!showInstructions)}
+                  leftIcon={<Info size={16} />}
+                  className="mb-4"
+                >
+                  {showInstructions ? 'Hide' : 'Show'} Setup Instructions
+                </Button>
+
+                {showInstructions && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
+                    <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-4 flex items-center">
+                      <ExternalLink size={16} className="mr-2" />
+                      Amazon Associates Setup Guide
+                    </h4>
+                    <div className="space-y-3 text-sm text-blue-700 dark:text-blue-400">
+                      {platforms.amazon.instructions?.map((instruction, index) => (
+                        <div key={index}>
+                          {instruction.startsWith('✅') ? (
+                            <h5 className="font-semibold text-blue-800 dark:text-blue-300 mt-4 mb-2">
+                              {instruction}
+                            </h5>
+                          ) : instruction.startsWith('**') ? (
+                            <p className="font-medium text-blue-800 dark:text-blue-300 mt-2">
+                              {instruction.replace(/\*\*/g, '')}
+                            </p>
+                          ) : instruction.startsWith('⚠️') ? (
+                            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3 mt-3">
+                              <p className="font-medium text-yellow-800 dark:text-yellow-300">
+                                {instruction}
+                              </p>
+                            </div>
+                          ) : instruction === '' ? (
+                            <div className="h-2" />
+                          ) : (
+                            <p className="ml-2">{instruction}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                        <strong>Need help?</strong> Visit the{' '}
+                        <a 
+                          href="https://affiliate-program.amazon.com" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          Amazon Associates Central
+                        </a>{' '}
+                        for detailed documentation.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {platforms[selectedPlatform].fields.map((field) => (
