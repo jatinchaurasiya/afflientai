@@ -17,7 +17,8 @@ import {
   Bot,
   Palette,
   Brain,
-  Zap
+  Zap,
+  ShoppingBag
 } from 'lucide-react';
 import Header from './Header';
 import { useAuthStore } from '../../store/authStore';
@@ -29,8 +30,8 @@ const DashboardLayout: React.FC = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([
-    { id: 1, text: 'New widget conversion', time: '5 minutes ago' },
-    { id: 2, text: 'Payment processed', time: '1 hour ago' },
+    { id: 1, text: 'New AI recommendation generated', time: '5 minutes ago' },
+    { id: 2, text: 'Content analysis completed', time: '1 hour ago' },
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
   
@@ -44,10 +45,11 @@ const DashboardLayout: React.FC = () => {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Websites', href: '/dashboard/websites', icon: Globe },
     { name: 'Blogs', href: '/dashboard/blogs', icon: Globe },
+    { name: 'Affiliate Accounts', href: '/dashboard/affiliate-accounts', icon: ShoppingBag },
     { name: 'Affiliate Links', href: '/dashboard/affiliate-links', icon: Link2 },
     { name: 'Smart Popups', href: '/dashboard/popups', icon: Palette },
+    { name: 'AI Recommendations', href: '/dashboard/ai-recommendations', icon: Brain },
     { name: 'Automation', href: '/dashboard/automation', icon: Bot },
-    { name: 'Predictive AI', href: '/dashboard/predictive', icon: Brain },
     { name: 'Widgets', href: '/dashboard/widgets', icon: Boxes },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },

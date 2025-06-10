@@ -24,7 +24,8 @@ import LinkRedirect from './pages/Dashboard/AffiliateLinks/LinkRedirect';
 import AutomationDashboard from './pages/Dashboard/Automation/AutomationDashboard';
 import WebsiteIntegration from './pages/Dashboard/Websites/WebsiteIntegration';
 import PopupBuilder from './pages/Dashboard/SmartPopups/PopupBuilder';
-import PredictiveAnalyticsDashboard from './pages/Dashboard/PredictiveAnalytics/PredictiveAnalyticsDashboard';
+import AIRecommendationsDashboard from './pages/Dashboard/AIRecommendations/AIRecommendationsDashboard';
+import AffiliateAccountsPage from './pages/Dashboard/AffiliateAccounts/AffiliateAccountsPage';
 
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
 
@@ -73,10 +74,11 @@ function App() {
           <Route path="blogs" element={<BlogList />} />
           <Route path="blogs/new" element={<BlogSetup />} />
           <Route path="blogs/:blogId" element={<BlogDetails />} />
+          <Route path="affiliate-accounts" element={<AffiliateAccountsPage />} />
           <Route path="affiliate-links" element={<AffiliateLinksPage />} />
           <Route path="popups" element={<PopupBuilder />} />
+          <Route path="ai-recommendations" element={<AIRecommendationsDashboard />} />
           <Route path="automation" element={<AutomationDashboard />} />
-          <Route path="predictive" element={<PredictiveAnalyticsDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="billing" element={<BillingDashboard />} />
           <Route path="widgets" element={<CreateWidget />} />
