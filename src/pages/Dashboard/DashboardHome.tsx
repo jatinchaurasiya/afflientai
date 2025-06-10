@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, Users, DollarSign, MousePointer, Calendar, Download, Filter,
-  Globe, Link2, Bot, Brain, Zap, AlertTriangle, CheckCircle, ArrowRight, Palette
+  Globe, Bot, Brain, Zap, AlertTriangle, CheckCircle, ArrowRight, Palette, ShoppingBag
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useAuthStore } from '../../store/authStore';
@@ -14,14 +14,12 @@ import { supabase } from '../../lib/supabase';
 import { formatCurrency } from '../../lib/utils';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { analyticsService } from '../../lib/analyticsService';
-import { automationOrchestrator } from '../../lib/automationOrchestrator';
+import { aiRecommendationService } from '../../lib/aiRecommendationEngine';
 
 interface DashboardStats {
   websites: number;
-  affiliateLinks: number;
+  affiliateAccounts: number;
   activePopups: number;
-  automationRules: number;
   totalRevenue: number;
   conversionRate: number;
   avgLTV: number;
@@ -46,9 +44,8 @@ const DashboardHome: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>({
     websites: 0,
-    affiliateLinks: 0,
+    affiliateAccounts: 0,
     activePopups: 0,
-    automationRules: 0,
     totalRevenue: 0,
     conversionRate: 0,
     avgLTV: 187.25,
@@ -60,7 +57,6 @@ const DashboardHome: React.FC = () => {
   const [dateRange, setDateRange] = useState('7d');
   const [aiInsights, setAiInsights] = useState<any[]>([]);
   const [topPerformers, setTopPerformers] = useState<any[]>([]);
-  const [dashboardMetrics, setDashboardMetrics] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
@@ -73,55 +69,47 @@ const DashboardHome: React.FC = () => {
     try {
       if (!user) return;
 
-      // Fetch comprehensive dashboard metrics
-      const endDate = new Date();
-      const startDate = subDays(endDate, dateRange === '7d' ? 7 : 30);
-      
-      const metrics = await analyticsService.getDashboardMetrics(user.id, {
-        start: startDate,
-        end: endDate
-      });
-
-      setDashboardMetrics(metrics);
-
       // Fetch real data from Supabase
       const [
         websitesResult,
-        linksResult,
+        accountsResult,
         popupsResult,
-        automationResult,
         analyticsResult
       ] = await Promise.all([
         supabase.from('websites').select('id').eq('user_id', user.id),
-        supabase.from('affiliate_links').select('id').eq('user_id', user.id).eq('is_active', true),
+        supabase.from('affiliate_accounts').select('id').eq('user_id', user.id).eq('status', 'active'),
         supabase.from('popups').select('id').eq('status', 'active'),
-        supabase.from('automation_rules').select('id').eq('user_id', user.id).eq('is_active', true),
         supabase.from('link_analytics').select('*').eq('user_id', user.id)
       ]);
 
       // Calculate stats from real data
-      const totalRevenue = metrics.overview.total_revenue;
-      const totalClicks = metrics.overview.total_clicks;
-      const totalConversions = metrics.overview.total_conversions;
+      const totalRevenue = analyticsResult.data?.reduce((sum, record) => sum + (record.revenue || 0), 0) || 0;
+      const totalClicks = analyticsResult.data?.reduce((sum, record) => sum + (record.clicks || 0), 0) || 0;
+      const totalConversions = analyticsResult.data?.reduce((sum, record) => sum + (record.conversions || 0), 0) || 0;
 
       setStats({
         websites: websitesResult.data?.length || 0,
-        affiliateLinks: linksResult.data?.length || 0,
+        affiliateAccounts: accountsResult.data?.length || 0,
         activePopups: popupsResult.data?.length || 0,
-        automationRules: automationResult.data?.length || 0,
         totalRevenue,
-        conversionRate: metrics.overview.conversion_rate,
-        avgLTV: 187.25, // From metrics or mock data
-        churnRisk: 15.3 // From metrics or mock data
+        conversionRate: totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0,
+        avgLTV: 187.25,
+        churnRisk: 15.3
       });
 
-      // Set timeseries data from metrics
-      setTimeseriesData(metrics.trends.revenue_trend.map(item => ({
-        date: format(new Date(item.date), 'MMM dd'),
-        revenue: item.revenue,
-        clicks: Math.floor(item.revenue * 0.1), // Mock clicks based on revenue
-        conversions: Math.floor(item.revenue * 0.02) // Mock conversions
-      })));
+      // Generate mock timeseries data
+      const days = dateRange === '7d' ? 7 : 30;
+      const mockTimeseriesData = Array.from({ length: days }, (_, i) => {
+        const date = subDays(new Date(), days - 1 - i);
+        return {
+          date: format(date, 'MMM dd'),
+          revenue: Math.floor(Math.random() * 100) + 50,
+          clicks: Math.floor(Math.random() * 200) + 100,
+          conversions: Math.floor(Math.random() * 20) + 5
+        };
+      });
+
+      setTimeseriesData(mockTimeseriesData);
 
       // Platform distribution data
       setPlatformData([
@@ -131,85 +119,107 @@ const DashboardHome: React.FC = () => {
         { name: 'Other', value: 10, color: '#6B7280' }
       ]);
 
-      // Recent activity with real automation events
+      // Recent activity
       setRecentActivity([
         {
           id: 1,
-          type: 'conversion',
-          message: 'New conversion on Tech Blog',
-          value: '$24.50',
+          type: 'ai_analysis',
+          message: 'AI analyzed new blog post and found 5 product opportunities',
+          value: '5 products',
           time: '2 minutes ago',
-          icon: DollarSign,
-          color: 'text-green-600'
+          icon: Brain,
+          color: 'text-purple-600'
         },
         {
           id: 2,
-          type: 'automation',
-          message: 'Automation rule triggered for Electronics category',
-          value: '3 links created',
+          type: 'popup_created',
+          message: 'Smart popup created for Electronics category',
+          value: 'Auto-generated',
           time: '15 minutes ago',
-          icon: Bot,
+          icon: Palette,
           color: 'text-blue-600'
         },
         {
           id: 3,
-          type: 'popup',
-          message: 'Smart popup achieved 4.2% conversion rate',
-          value: '12 conversions',
+          type: 'account_connected',
+          message: 'Amazon Associates account connected successfully',
+          value: 'Active',
           time: '1 hour ago',
-          icon: Zap,
-          color: 'text-purple-600'
+          icon: ShoppingBag,
+          color: 'text-green-600'
         },
         {
           id: 4,
-          type: 'prediction',
-          message: 'AI identified high-value user segment',
-          value: 'LTV: $340',
+          type: 'conversion',
+          message: 'New conversion tracked from smart popup',
+          value: '$24.50',
           time: '2 hours ago',
-          icon: Brain,
-          color: 'text-indigo-600'
+          icon: DollarSign,
+          color: 'text-yellow-600'
         }
       ]);
 
-      // AI Insights from metrics
+      // AI Insights
       setAiInsights([
         {
           id: 1,
-          title: 'Conversion Opportunity',
-          description: 'Mobile users show 23% higher conversion when popups trigger at 45% scroll vs 60%',
-          action: 'Apply Optimization',
+          title: 'High-Intent Content Detected',
+          description: 'Your latest blog post shows 85% buying intent. Perfect for product recommendations.',
+          action: 'View Analysis',
           priority: 'high',
-          icon: TrendingUp
+          icon: Brain
         },
         {
           id: 2,
-          title: 'Churn Risk Alert',
-          description: '45 users with declining engagement identified as high churn risk',
-          action: 'Create Retention Campaign',
-          priority: 'high',
-          icon: AlertTriangle
+          title: 'Optimization Opportunity',
+          description: 'Electronics category shows 34% higher conversion potential.',
+          action: 'Optimize Strategy',
+          priority: 'medium',
+          icon: TrendingUp
         },
         {
           id: 3,
-          title: 'Product Category Opportunity',
-          description: 'Electronics category shows 34% higher LTV potential',
-          action: 'Adjust Strategy',
-          priority: 'medium',
-          icon: DollarSign
+          title: 'New Products Available',
+          description: '12 new products added to your connected affiliate accounts.',
+          action: 'Review Products',
+          priority: 'low',
+          icon: ShoppingBag
         }
       ]);
 
-      // Top Performers from metrics
-      setTopPerformers(metrics.performance.top_performing_popups.slice(0, 3).map(popup => ({
-        id: popup.id,
-        name: popup.name,
-        type: 'popup',
-        performance: {
-          clicks: popup.clicks,
-          conversions: popup.conversions,
-          revenue: popup.revenue
+      // Top Performers
+      setTopPerformers([
+        {
+          id: 1,
+          name: 'Tech Review Blog',
+          type: 'website',
+          performance: {
+            clicks: 1234,
+            conversions: 45,
+            revenue: 567.89
+          }
+        },
+        {
+          id: 2,
+          name: 'Electronics Popup',
+          type: 'popup',
+          performance: {
+            clicks: 890,
+            conversions: 32,
+            revenue: 423.56
+          }
+        },
+        {
+          id: 3,
+          name: 'Amazon Headphones',
+          type: 'product',
+          performance: {
+            clicks: 567,
+            conversions: 28,
+            revenue: 345.67
+          }
         }
-      })));
+      ]);
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -221,8 +231,8 @@ const DashboardHome: React.FC = () => {
   const handleQuickAction = async (action: string) => {
     try {
       switch (action) {
-        case 'create_automation':
-          // Create a basic automation workflow
+        case 'analyze_content':
+          // Trigger AI content analysis
           if (stats.websites > 0) {
             const { data: websites } = await supabase
               .from('websites')
@@ -231,17 +241,21 @@ const DashboardHome: React.FC = () => {
               .limit(1);
 
             if (websites && websites.length > 0) {
-              await automationOrchestrator.initializeUserAutomation(user?.id || '');
+              await aiRecommendationService.processNewBlogPost(
+                websites[0].id,
+                'https://example.com/test-post',
+                user?.id || ''
+              );
             }
           }
           break;
-        case 'analyze_content':
-          // Trigger content analysis for all websites
-          await automationOrchestrator.initializeUserAutomation(user?.id || '');
+        case 'create_popup':
+          // Navigate to popup builder
+          window.location.href = '/dashboard/popups';
           break;
-        case 'optimize_popups':
-          // Optimize existing popups
-          console.log('Optimizing popups...');
+        case 'connect_account':
+          // Navigate to affiliate accounts
+          window.location.href = '/dashboard/affiliate-accounts';
           break;
       }
     } catch (error) {
@@ -310,11 +324,11 @@ const DashboardHome: React.FC = () => {
         >
           <div className="flex items-center">
             <div className="p-3 rounded-lg bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-              <Link2 size={24} />
+              <ShoppingBag size={24} />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Affiliate Links</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.affiliateLinks}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Affiliate Accounts</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.affiliateAccounts}</p>
             </div>
           </div>
         </motion.div>
@@ -327,11 +341,11 @@ const DashboardHome: React.FC = () => {
         >
           <div className="flex items-center">
             <div className="p-3 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
-              <Bot size={24} />
+              <Palette size={24} />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Automations</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.automationRules}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Popups</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.activePopups}</p>
             </div>
           </div>
         </motion.div>
@@ -366,7 +380,7 @@ const DashboardHome: React.FC = () => {
             <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">AI-Powered Insights</h3>
           </div>
-          <Link to="/dashboard/predictive">
+          <Link to="/dashboard/ai-recommendations">
             <Button variant="outline" size="sm" rightIcon={<ArrowRight size={16} />}>
               View All Insights
             </Button>
@@ -380,7 +394,9 @@ const DashboardHome: React.FC = () => {
                 <div className={`p-2 rounded-lg ${
                   insight.priority === 'high' 
                     ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
-                    : 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
+                    : insight.priority === 'medium'
+                    ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
+                    : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
                 } mr-4`}>
                   <insight.icon size={20} />
                 </div>
@@ -545,7 +561,7 @@ const DashboardHome: React.FC = () => {
                     <h4 className="font-medium text-gray-900 dark:text-white">{item.name}</h4>
                     <div className="flex items-center mt-1">
                       <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                        {item.type === 'blog' ? 'Blog' : 'Popup'}
+                        {item.type}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
                         {item.performance.conversions} conversions
@@ -622,14 +638,14 @@ const DashboardHome: React.FC = () => {
         className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         
-        <Link to="/dashboard/affiliate-links" className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+        <Link to="/dashboard/affiliate-accounts" className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="p-3 bg-white/20 rounded-lg mr-4">
-              <Link2 size={24} />
+              <ShoppingBag size={24} />
             </div>
             <div>
-              <h3 className="font-medium">Create Affiliate Link</h3>
-              <p className="text-sm text-blue-100 mt-1">Generate trackable links for your content</p>
+              <h3 className="font-medium">Connect Affiliate Account</h3>
+              <p className="text-sm text-blue-100 mt-1">Link Amazon, eBay, Walmart & more</p>
             </div>
           </div>
         </Link>
@@ -646,14 +662,14 @@ const DashboardHome: React.FC = () => {
           </div>
         </Link>
         
-        <Link to="/dashboard/automation" className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+        <Link to="/dashboard/ai-recommendations" className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="p-3 bg-white/20 rounded-lg mr-4">
-              <Bot size={24} />
+              <Brain size={24} />
             </div>
             <div>
-              <h3 className="font-medium">Setup Automation</h3>
-              <p className="text-sm text-green-100 mt-1">Automate affiliate marketing tasks</p>
+              <h3 className="font-medium">AI Recommendations</h3>
+              <p className="text-sm text-green-100 mt-1">View intelligent product suggestions</p>
             </div>
           </div>
         </Link>
@@ -673,12 +689,12 @@ const DashboardHome: React.FC = () => {
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
-                Churn Risk Alert
+                Optimization Opportunity
               </h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-400">
                 <p>
-                  Our AI has detected {Math.round(stats.churnRisk)}% of your users are at risk of churning. 
-                  Visit the <Link to="/dashboard/predictive" className="font-medium underline">Predictive Analytics</Link> dashboard 
+                  Our AI has detected optimization opportunities for {Math.round(stats.churnRisk)}% of your content. 
+                  Visit the <Link to="/dashboard/ai-recommendations" className="font-medium underline">AI Recommendations</Link> dashboard 
                   to see detailed insights and recommended actions.
                 </p>
               </div>

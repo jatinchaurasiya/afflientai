@@ -19,9 +19,6 @@ import LoadingScreen from './components/ui/LoadingScreen';
 import BlogList from './pages/Dashboard/Blogs/BlogList';
 import BlogSetup from './pages/Dashboard/Blogs/OnboardingFlow/BlogSetup';
 import BlogDetails from './pages/Dashboard/Blogs/BlogDetails';
-import AffiliateLinksPage from './pages/Dashboard/AffiliateLinks/AffiliateLinksPage';
-import LinkRedirect from './pages/Dashboard/AffiliateLinks/LinkRedirect';
-import AutomationDashboard from './pages/Dashboard/Automation/AutomationDashboard';
 import WebsiteIntegration from './pages/Dashboard/Websites/WebsiteIntegration';
 import PopupBuilder from './pages/Dashboard/SmartPopups/PopupBuilder';
 import AIRecommendationsDashboard from './pages/Dashboard/AIRecommendations/AIRecommendationsDashboard';
@@ -37,7 +34,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/signin\" replace />;
+    return <Navigate to="/signin" replace />;
   }
   
   return <>{children}</>;
@@ -60,9 +57,6 @@ function App() {
           <Route path="signup" element={<SignUpForm />} />
         </Route>
         
-        {/* Link redirect route (public) */}
-        <Route path="/l/:shortCode" element={<LinkRedirect />} />
-        
         {/* Protected routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
@@ -75,14 +69,12 @@ function App() {
           <Route path="blogs/new" element={<BlogSetup />} />
           <Route path="blogs/:blogId" element={<BlogDetails />} />
           <Route path="affiliate-accounts" element={<AffiliateAccountsPage />} />
-          <Route path="affiliate-links" element={<AffiliateLinksPage />} />
           <Route path="popups" element={<PopupBuilder />} />
           <Route path="ai-recommendations" element={<AIRecommendationsDashboard />} />
-          <Route path="automation" element={<AutomationDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="billing" element={<BillingDashboard />} />
           <Route path="widgets" element={<CreateWidget />} />
-          <Route path="settings" element={<Navigate to="/dashboard\" replace />} />
+          <Route path="settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         
         {/* Onboarding flow */}
@@ -98,7 +90,7 @@ function App() {
         </Route>
         
         {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </SentryRoutes>
     </Router>
   );
