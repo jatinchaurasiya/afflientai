@@ -1,6 +1,4 @@
 import { supabase } from './supabase';
-import { contentAnalysisService } from './contentAnalysisService';
-import { affiliateNetworkService } from './affiliateNetworkService';
 
 // AI-Powered Content Analysis Engine
 export class ContentAnalyzer {
@@ -15,54 +13,46 @@ export class ContentAnalyzer {
 
   async analyzeContent(contentUrl: string, websiteId: string): Promise<any> {
     try {
-      // 1. Content extraction
-      const rawContent = await this.extractContent(contentUrl);
-      
-      // 2. Text preprocessing
-      const cleanedText = this.preprocessText(rawContent);
-      
-      // 3. Keyword extraction
-      const keywords = this.extractKeywords(cleanedText);
-      
-      // 4. Intent analysis
-      const buyingIntent = this.analyzeIntent(keywords, cleanedText);
-      
-      // 5. Product category mapping
-      const categories = this.categorizeContent(keywords);
-      
-      // 6. Store analysis results
-      await this.storeAnalysis(contentUrl, websiteId, keywords, buyingIntent, categories);
-      
-      // 7. Get recommended products
-      const recommendedProducts = await this.matchProducts(categories, keywords, websiteId);
-      
+      // Use the existing Supabase Edge Function for content analysis
+      const { data, error } = await supabase.functions.invoke('analyze-content', {
+        body: {
+          contentUrl,
+          websiteId
+        }
+      });
+
+      if (error) {
+        console.error('Content analysis function error:', error);
+        throw error;
+      }
+
+      // Return the analysis results with contentId
       return {
-        keywords,
-        intentScore: buyingIntent,
-        categories,
-        recommendedProducts,
-        shouldShowPopup: buyingIntent > 0.6
+        contentId: data?.contentId,
+        keywords: data?.keywords || [],
+        intentScore: data?.intentScore || 0,
+        categories: data?.categories || ['general'],
+        recommendedProducts: data?.recommendedProducts || [],
+        shouldShowPopup: (data?.intentScore || 0) > 0.6
       };
     } catch (error) {
       console.error('Content analysis error:', error);
-      throw error;
+      // Return fallback data to prevent crashes
+      return {
+        contentId: null,
+        keywords: [],
+        intentScore: 0,
+        categories: ['general'],
+        recommendedProducts: [],
+        shouldShowPopup: false
+      };
     }
   }
 
+  // Keep these methods for backward compatibility but mark as deprecated
   private async extractContent(contentUrl: string): Promise<string> {
-    try {
-      // In production, this would fetch and parse the actual webpage
-      // For now, we'll simulate content extraction
-      const response = await fetch(contentUrl);
-      const html = await response.text();
-      
-      // Extract text content from HTML (simplified)
-      const textContent = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      return textContent;
-    } catch (error) {
-      console.error('Content extraction error:', error);
-      return '';
-    }
+    console.warn('Direct content extraction is deprecated. Use Supabase Edge Function instead.');
+    return '';
   }
 
   private preprocessText(rawContent: string): string {
@@ -74,14 +64,12 @@ export class ContentAnalyzer {
   }
 
   private extractKeywords(cleanedText: string): string[] {
-    // Buying Intent Detection keywords
     const buyingIntentKeywords = [
       'best', 'review', 'compare', 'buy', 'deal', 'discount', 'price',
       'cheap', 'affordable', 'recommend', 'vs', 'versus', 'alternative',
       'guide', 'how to choose', 'top', 'rating', 'recommendation'
     ];
 
-    // Remove stop words
     const stopWords = new Set([
       'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
       'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did'
@@ -91,13 +79,11 @@ export class ContentAnalyzer {
       word.length > 3 && !stopWords.has(word)
     );
 
-    // Count word frequency
     const wordCount = new Map<string, number>();
     words.forEach(word => {
       wordCount.set(word, (wordCount.get(word) || 0) + 1);
     });
 
-    // Prioritize buying intent keywords
     const prioritizedKeywords = Array.from(wordCount.entries())
       .sort((a, b) => {
         const aIsBuyingIntent = buyingIntentKeywords.includes(a[0]);
@@ -106,7 +92,7 @@ export class ContentAnalyzer {
         if (aIsBuyingIntent && !bIsBuyingIntent) return -1;
         if (!aIsBuyingIntent && bIsBuyingIntent) return 1;
         
-        return b[1] - a[1]; // Sort by frequency
+        return b[1] - a[1];
       })
       .slice(0, 20)
       .map(([word]) => word);
@@ -133,7 +119,6 @@ export class ContentAnalyzer {
       intentScore += matches * weight;
     });
 
-    // Normalize score (0-1)
     return Math.min(intentScore / 100, 1);
   }
 
@@ -167,94 +152,6 @@ export class ContentAnalyzer {
     return detectedCategories.length > 0 ? detectedCategories : ['general'];
   }
 
-  private async storeAnalysis(
-    contentUrl: string, 
-    websiteId: string, 
-    keywords: string[], 
-    buyingIntent: number, 
-    categories: string[]
-  ): Promise<void> {
-    try {
-      await supabase.from('content_analysis').insert({
-        website_id: websiteId,
-        content_url: contentUrl,
-        content_hash: this.generateContentHash(contentUrl),
-        keywords,
-        products_identified: [],
-        analysis_score: Math.round(buyingIntent * 100),
-        category: categories[0] || 'general',
-        buying_intent_score: buyingIntent,
-        sentiment: 'neutral'
-      });
-    } catch (error) {
-      console.error('Error storing analysis:', error);
-    }
-  }
-
-  private async matchProducts(categories: string[], keywords: string[], websiteId: string): Promise<any[]> {
-    try {
-      // Get website owner
-      const { data: website } = await supabase
-        .from('websites')
-        .select('user_id')
-        .eq('id', websiteId)
-        .single();
-
-      if (!website) return [];
-
-      // Get user's affiliate products
-      const { data: products } = await supabase
-        .from('affiliate_products')
-        .select(`
-          *,
-          affiliate_accounts!inner(user_id, platform, status)
-        `)
-        .eq('affiliate_accounts.user_id', website.user_id)
-        .eq('affiliate_accounts.status', 'active');
-
-      if (!products) return [];
-
-      // Score and rank products based on relevance
-      const scoredProducts = products.map(product => ({
-        ...product,
-        relevanceScore: this.calculateProductRelevance(product, keywords, categories)
-      }));
-
-      // Sort by relevance and return top products
-      return scoredProducts
-        .sort((a, b) => b.relevanceScore - a.relevanceScore)
-        .slice(0, 5);
-
-    } catch (error) {
-      console.error('Error matching products:', error);
-      return [];
-    }
-  }
-
-  private calculateProductRelevance(product: any, keywords: string[], categories: string[]): number {
-    let score = 0;
-    const productText = `${product.name} ${product.description || ''}`.toLowerCase();
-
-    // Keyword matching (40% weight)
-    keywords.forEach(keyword => {
-      if (productText.includes(keyword.toLowerCase())) {
-        score += 4;
-      }
-    });
-
-    // Category matching (40% weight)
-    categories.forEach(category => {
-      if (product.category?.toLowerCase().includes(category.toLowerCase())) {
-        score += 4;
-      }
-    });
-
-    // Commission rate bonus (20% weight)
-    score += (product.commission_rate || 0) * 0.2;
-
-    return score;
-  }
-
   private generateContentHash(content: string): string {
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
@@ -278,31 +175,29 @@ export class ProductRecommendationEngine {
   }
 
   async getRecommendations(
-    contentId: string, 
+    contentId: string | null, 
     userId?: string, 
     sessionId?: string, 
     limit: number = 5
   ): Promise<any[]> {
     try {
-      // 1. Content-based recommendations
-      const contentRecs = await this.getContentBasedRecommendations(contentId);
+      // Skip content-based recommendations if contentId is null/undefined
+      let contentRecs: any[] = [];
+      if (contentId) {
+        contentRecs = await this.getContentBasedRecommendations(contentId);
+      }
       
-      // 2. User behavior-based recommendations
       let userRecs: any[] = [];
       if (userId) {
         userRecs = await this.getUserBehaviorRecommendations(userId);
       }
       
-      // 3. Session-based recommendations
       let sessionRecs: any[] = [];
       if (sessionId) {
         sessionRecs = await this.getSessionBasedRecommendations(sessionId);
       }
       
-      // 4. Combine recommendations with weighted scoring
       const combinedRecs = this.combineRecommendations(contentRecs, userRecs, sessionRecs);
-      
-      // 5. Apply business rules (inventory, commission rates)
       const filteredRecs = await this.applyBusinessFilters(combinedRecs);
       
       return filteredRecs.slice(0, limit);
@@ -322,11 +217,24 @@ export class ProductRecommendationEngine {
 
       if (!analysis) return [];
 
-      // Find products matching content keywords and category
+      // Get website owner to find their products
+      const { data: website } = await supabase
+        .from('websites')
+        .select('user_id')
+        .eq('id', analysis.website_id)
+        .single();
+
+      if (!website) return [];
+
+      // Find products from user's affiliate accounts
       const { data: products } = await supabase
         .from('affiliate_products')
-        .select('*')
-        .ilike('category', `%${analysis.category}%`)
+        .select(`
+          *,
+          affiliate_accounts!inner(user_id, platform, status)
+        `)
+        .eq('affiliate_accounts.user_id', website.user_id)
+        .eq('affiliate_accounts.status', 'active')
         .limit(10);
 
       return products || [];
@@ -338,7 +246,6 @@ export class ProductRecommendationEngine {
 
   private async getUserBehaviorRecommendations(userId: string): Promise<any[]> {
     try {
-      // Get user's interaction history
       const { data: interactions } = await supabase
         .from('user_interactions')
         .select('product_id, event_type')
@@ -348,7 +255,6 @@ export class ProductRecommendationEngine {
 
       if (!interactions) return [];
 
-      // Find similar products based on user's interaction patterns
       const interactedProductIds = interactions
         .filter(i => i.product_id)
         .map(i => i.product_id);
@@ -369,7 +275,6 @@ export class ProductRecommendationEngine {
 
   private async getSessionBasedRecommendations(sessionId: string): Promise<any[]> {
     try {
-      // Get session interaction history
       const { data: interactions } = await supabase
         .from('user_interactions')
         .select('product_id, event_type, metadata')
@@ -379,7 +284,6 @@ export class ProductRecommendationEngine {
 
       if (!interactions) return [];
 
-      // Analyze session patterns and recommend similar products
       const viewedProducts = interactions
         .filter(i => i.product_id && i.event_type === 'product_viewed')
         .map(i => i.product_id);
@@ -405,7 +309,6 @@ export class ProductRecommendationEngine {
   ): any[] {
     const combinedMap = new Map();
 
-    // Weight content-based recommendations (50%)
     contentRecs.forEach(product => {
       combinedMap.set(product.id, {
         ...product,
@@ -413,7 +316,6 @@ export class ProductRecommendationEngine {
       });
     });
 
-    // Weight user behavior recommendations (30%)
     userRecs.forEach(product => {
       combinedMap.set(product.id, {
         ...product,
@@ -421,7 +323,6 @@ export class ProductRecommendationEngine {
       });
     });
 
-    // Weight session recommendations (20%)
     sessionRecs.forEach(product => {
       combinedMap.set(product.id, {
         ...product,
@@ -434,9 +335,7 @@ export class ProductRecommendationEngine {
   }
 
   private async applyBusinessFilters(recommendations: any[]): Promise<any[]> {
-    // Filter out out-of-stock products, apply commission rate preferences, etc.
     return recommendations.filter(product => {
-      // Basic business rules
       return product.price > 0 && 
              product.commission_rate > 0 && 
              product.affiliate_url;
@@ -459,7 +358,7 @@ export class AIRecommendationService {
       // 1. Analyze content
       const analysis = await this.contentAnalyzer.analyzeContent(postUrl, websiteId);
       
-      // 2. Get recommendations
+      // 2. Get recommendations - handle null contentId
       const recommendations = await this.recommendationEngine.getRecommendations(
         analysis.contentId,
         userId
@@ -470,8 +369,10 @@ export class AIRecommendationService {
         await this.createSmartPopup(websiteId, recommendations, analysis);
       }
       
-      // 4. Update analytics
-      await this.updateAnalytics(websiteId, analysis, recommendations);
+      // 4. Update analytics - only if we have a valid website
+      if (websiteId) {
+        await this.updateAnalytics(websiteId, analysis, recommendations);
+      }
       
       return {
         success: true,
@@ -524,16 +425,50 @@ export class AIRecommendationService {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      await supabase.from('website_analytics').upsert({
-        website_id: websiteId,
-        date: today,
-        posts_analyzed: 1,
-        keywords_extracted: analysis.keywords.length,
-        products_recommended: recommendations.length,
-        avg_buying_intent: analysis.intentScore
-      }, {
-        onConflict: 'website_id,date'
-      });
+      // First check if the website belongs to the current user
+      const { data: website } = await supabase
+        .from('websites')
+        .select('user_id')
+        .eq('id', websiteId)
+        .single();
+
+      if (!website) {
+        console.warn('Website not found for analytics update');
+        return;
+      }
+
+      // Use a more specific upsert approach
+      const { data: existingAnalytics } = await supabase
+        .from('website_analytics')
+        .select('*')
+        .eq('website_id', websiteId)
+        .eq('date', today)
+        .single();
+
+      if (existingAnalytics) {
+        // Update existing record
+        await supabase
+          .from('website_analytics')
+          .update({
+            posts_analyzed: (existingAnalytics.posts_analyzed || 0) + 1,
+            keywords_extracted: (existingAnalytics.keywords_extracted || 0) + analysis.keywords.length,
+            products_recommended: (existingAnalytics.products_recommended || 0) + recommendations.length,
+            avg_buying_intent: ((existingAnalytics.avg_buying_intent || 0) + analysis.intentScore) / 2
+          })
+          .eq('id', existingAnalytics.id);
+      } else {
+        // Insert new record
+        await supabase
+          .from('website_analytics')
+          .insert({
+            website_id: websiteId,
+            date: today,
+            posts_analyzed: 1,
+            keywords_extracted: analysis.keywords.length,
+            products_recommended: recommendations.length,
+            avg_buying_intent: analysis.intentScore
+          });
+      }
     } catch (error) {
       console.error('Error updating analytics:', error);
     }
@@ -561,7 +496,6 @@ export class AIRecommendationService {
         metadata: interactionData.metadata || {}
       });
 
-      // Update real-time recommendations based on interaction
       if (interactionData.eventType === 'product_clicked' || interactionData.eventType === 'product_viewed') {
         await this.updateUserPreferences(interactionData);
       }
@@ -571,15 +505,26 @@ export class AIRecommendationService {
   }
 
   private async updateUserPreferences(interactionData: any): Promise<void> {
-    // Update user behavior patterns for better future recommendations
     try {
       if (interactionData.userId) {
-        await supabase.rpc('update_user_preferences', {
-          p_user_id: interactionData.userId,
-          p_interaction_type: interactionData.eventType,
-          p_product_id: interactionData.productId,
-          p_value: interactionData.value || 1
-        });
+        // Simple preference update without RPC
+        const { data: profile } = await supabase
+          .from('user_behavior_profiles')
+          .select('*')
+          .eq('user_id', interactionData.userId)
+          .single();
+
+        if (profile) {
+          const updatedPreferences = {
+            ...profile.preferences,
+            [interactionData.eventType]: (profile.preferences?.[interactionData.eventType] || 0) + 1
+          };
+
+          await supabase
+            .from('user_behavior_profiles')
+            .update({ preferences: updatedPreferences })
+            .eq('user_id', interactionData.userId);
+        }
       }
     } catch (error) {
       console.error('Error updating user preferences:', error);
