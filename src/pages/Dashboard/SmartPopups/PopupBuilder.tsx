@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Palette, Eye, Settings, Zap, Play, Pause, BarChart3 } from 'lucide-react';
+import { Palette, Eye, Settings, Zap, Play, Pause, BarChart3, Code, Plus } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { useAuthStore } from '../../../store/authStore';
 import { supabase } from '../../../lib/supabase';
 import { formatDate } from '../../../lib/utils';
 import { motion } from 'framer-motion';
+import PopupCodeGenerator from './PopupCodeGenerator';
 
 interface PopupTemplate {
   id: string;
@@ -28,14 +29,22 @@ interface Popup {
   updated_at: string;
 }
 
+interface Website {
+  id: string;
+  domain: string;
+  name: string | null;
+  integration_key: string;
+}
+
 const PopupBuilder: React.FC = () => {
   const { user } = useAuthStore();
   const [popups, setPopups] = useState<Popup[]>([]);
-  const [websites, setWebsites] = useState<any[]>([]);
+  const [websites, setWebsites] = useState<Website[]>([]);
   const [affiliateLinks, setAffiliateLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBuilder, setShowBuilder] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<PopupTemplate | null>(null);
+  const [showCodeGenerator, setShowCodeGenerator] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     websiteId: '',
@@ -54,6 +63,8 @@ const PopupBuilder: React.FC = () => {
     }
   });
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const templates: PopupTemplate[] = [
     {
@@ -95,33 +106,40 @@ const PopupBuilder: React.FC = () => {
       if (!user) return;
 
       // Fetch popups
-      const { data: popupsData } = await supabase
+      const { data: popupsData, error: popupsError } = await supabase
         .from('popups')
         .select(`
           *,
-          websites!inner(domain, name)
+          websites!inner(id, domain, name, integration_key)
         `)
         .order('created_at', { ascending: false });
 
+      if (popupsError) throw popupsError;
+
       // Fetch websites
-      const { data: websitesData } = await supabase
+      const { data: websitesData, error: websitesError } = await supabase
         .from('websites')
-        .select('*')
+        .select('id, domain, name, integration_key')
         .eq('user_id', user.id)
         .eq('status', 'active');
 
+      if (websitesError) throw websitesError;
+
       // Fetch affiliate links
-      const { data: linksData } = await supabase
+      const { data: linksData, error: linksError } = await supabase
         .from('affiliate_links')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true);
+
+      if (linksError) throw linksError;
 
       setPopups(popupsData || []);
       setWebsites(websitesData || []);
       setAffiliateLinks(linksData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError('Failed to load data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -130,9 +148,16 @@ const PopupBuilder: React.FC = () => {
   const handleCreatePopup = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
+    setError(null);
 
     try {
       if (!user) throw new Error('User not authenticated');
+
+      // Validate form data
+      if (!formData.websiteId) throw new Error('Please select a website');
+      if (!formData.name) throw new Error('Please enter a name for your popup');
+      if (!formData.headline) throw new Error('Please enter a headline');
+      if (!formData.description) throw new Error('Please enter a description');
 
       const popupConfig = {
         id: `popup_${Date.now()}`,
@@ -159,11 +184,11 @@ const PopupBuilder: React.FC = () => {
         }
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('popups')
         .insert({
           website_id: formData.websiteId,
-          affiliate_link_id: formData.affiliateLinkId,
+          affiliate_link_id: formData.affiliateLinkId || null,
           name: formData.name,
           config: popupConfig,
           trigger_rules: popupConfig.trigger,
@@ -173,10 +198,13 @@ const PopupBuilder: React.FC = () => {
             userSegment: 'all'
           },
           status: 'active'
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      setSuccess('Popup created successfully!');
       setShowBuilder(false);
       setFormData({
         name: '',
@@ -198,6 +226,7 @@ const PopupBuilder: React.FC = () => {
       fetchData();
     } catch (error) {
       console.error('Error creating popup:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create popup');
     } finally {
       setCreating(false);
     }
@@ -213,9 +242,12 @@ const PopupBuilder: React.FC = () => {
         .eq('id', popupId);
 
       if (error) throw error;
+      
+      setSuccess(`Popup ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
       fetchData();
     } catch (error) {
       console.error('Error toggling popup status:', error);
+      setError('Failed to update popup status');
     }
   };
 
@@ -242,10 +274,14 @@ const PopupBuilder: React.FC = () => {
     }
   };
 
+  const handleGetCode = (popup: Popup) => {
+    setShowCodeGenerator(popup.id);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -262,14 +298,36 @@ const PopupBuilder: React.FC = () => {
         
         <Button
           onClick={() => setShowBuilder(true)}
-          leftIcon={<Palette size={18} />}
+          leftIcon={<Plus size={18} />}
         >
           Create Popup
         </Button>
       </div>
 
+      {error && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 mb-6 flex items-start text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-900/30 dark:text-red-400"
+        >
+          <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+          {error}
+        </motion.div>
+      )}
+      
+      {success && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 mb-6 flex items-start text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-900/30 dark:text-green-400"
+        >
+          <CheckCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+          {success}
+        </motion.div>
+      )}
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <div className="p-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
@@ -302,20 +360,8 @@ const PopupBuilder: React.FC = () => {
               <Eye size={20} />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Views</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">12,456</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center">
-            <div className="p-3 rounded-lg bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
-              <BarChart3 size={20} />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Conversion Rate</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">3.2%</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Connected Websites</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{websites.length}</p>
             </div>
           </div>
         </div>
@@ -370,13 +416,12 @@ const PopupBuilder: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Affiliate Link
+                      Affiliate Link (Optional)
                     </label>
                     <select
                       value={formData.affiliateLinkId}
                       onChange={(e) => setFormData({ ...formData, affiliateLinkId: e.target.value })}
                       className="w-full p-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      required
                     >
                       <option value="">Select an affiliate link</option>
                       {affiliateLinks.map((link) => (
@@ -385,6 +430,9 @@ const PopupBuilder: React.FC = () => {
                         </option>
                       ))}
                     </select>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      If not selected, AI will automatically recommend products based on content
+                    </p>
                   </div>
 
                   <div>
@@ -549,6 +597,53 @@ const PopupBuilder: React.FC = () => {
         </motion.div>
       )}
 
+      {/* Code Generator Modal */}
+      {showCodeGenerator && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-4xl"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                Popup Integration Code
+              </h3>
+              <button
+                onClick={() => setShowCodeGenerator(null)}
+                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {popups.find(p => p.id === showCodeGenerator) && (
+              <PopupCodeGenerator
+                websiteId={(popups.find(p => p.id === showCodeGenerator)?.websites as any).id}
+                popupId={showCodeGenerator}
+                integrationKey={(popups.find(p => p.id === showCodeGenerator)?.websites as any).integration_key}
+              />
+            )}
+            
+            <div className="mt-6 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowCodeGenerator(null)}
+              >
+                Close
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
       {/* Popups List */}
       {popups.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -584,6 +679,7 @@ const PopupBuilder: React.FC = () => {
                     </div>
                     
                     <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      <p>Website: {(popup.websites as any).name || (popup.websites as any).domain}</p>
                       <p>Template: {popup.design_settings?.template || 'Custom'}</p>
                       <p>Trigger: {popup.trigger_rules?.type || 'Unknown'} - {popup.trigger_rules?.value || 0}%</p>
                       <p>Created: {formatDate(popup.created_at)}</p>
@@ -603,9 +699,10 @@ const PopupBuilder: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      leftIcon={<Eye size={16} />}
+                      onClick={() => handleGetCode(popup)}
+                      leftIcon={<Code size={16} />}
                     >
-                      Preview
+                      Get Code
                     </Button>
                     
                     <Button
@@ -630,6 +727,57 @@ const PopupBuilder: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Integration Guide */}
+      <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+        <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-4">How Smart Popups Work</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">AI-Powered Features</h4>
+            <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Content analysis for contextual recommendations
+              </li>
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Optimal timing based on user behavior
+              </li>
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Personalized product selection
+              </li>
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Conversion optimization algorithms
+              </li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Integration Benefits</h4>
+            <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Simple JavaScript integration
+              </li>
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Works with all major website platforms
+              </li>
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Lightweight and performance optimized
+              </li>
+              <li className="flex items-start">
+                <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                GDPR and privacy compliant
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,6 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Globe, 
-  Boxes, 
   BarChart3, 
   CreditCard, 
   Settings, 
@@ -19,7 +18,6 @@ import {
   Zap,
   ShoppingBag
 } from 'lucide-react';
-import Header from './Header';
 import { useAuthStore } from '../../store/authStore';
 import { motion } from 'framer-motion';
 
@@ -45,9 +43,8 @@ const DashboardLayout: React.FC = () => {
     { name: 'Websites', href: '/dashboard/websites', icon: Globe },
     { name: 'Blogs', href: '/dashboard/blogs', icon: Globe },
     { name: 'Affiliate Accounts', href: '/dashboard/affiliate-accounts', icon: ShoppingBag },
-    { name: 'Smart Popups', href: '/dashboard/popups', icon: Palette },
+    { name: 'Smart Popups', href: '/dashboard/smart-popups', icon: Palette },
     { name: 'AI Recommendations', href: '/dashboard/ai-recommendations', icon: Brain },
-    { name: 'Widgets', href: '/dashboard/widgets', icon: Boxes },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   ];

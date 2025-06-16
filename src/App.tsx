@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/signin\" replace />;
+    return <Navigate to="/signin" replace />;
   }
   
   return <>{children}</>;
@@ -69,12 +69,11 @@ function App() {
           <Route path="blogs/new" element={<BlogSetup />} />
           <Route path="blogs/:blogId" element={<BlogDetails />} />
           <Route path="affiliate-accounts" element={<AffiliateAccountsPage />} />
-          <Route path="popups" element={<PopupBuilder />} />
+          <Route path="smart-popups" element={<PopupBuilder />} />
           <Route path="ai-recommendations" element={<AIRecommendationsDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="billing" element={<BillingDashboard />} />
-          <Route path="widgets" element={<CreateWidget />} />
-          <Route path="settings" element={<Navigate to="/dashboard\" replace />} />
+          <Route path="settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         
         {/* Onboarding flow */}
@@ -90,7 +89,7 @@ function App() {
         </Route>
         
         {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </SentryRoutes>
     </Router>
   );
