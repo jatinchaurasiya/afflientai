@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popup Rendering Engine Demo</title>
+  <link rel="stylesheet" href="popup-styles.css">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #4F46E5;
+      margin-bottom: 20px;
+    }
+    
+    .demo-section {
+      margin-bottom: 40px;
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      background-color: #4F46E5;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    button:hover {
+      background-color: #4338CA;
+    }
+    
+    select, input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .content {
+      height: 2000px;
+      padding: 20px;
+      background-color: #f9fafb;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    
+    .content p {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Popup Rendering Engine Demo</h1>
+    
+    <div class="demo-section">
+      <h2>Popup Controls</h2>
+      
+      <div class="controls">
+        <div class="control-group">
+          <label for="theme">Theme:</label>
+          <select id="theme">
+            <option value="modern">Modern</option>
+            <option value="minimal">Minimal</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label for="position">Position:</label>
+          <select id="position">
+            <option value="center">Center</option>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+            <option value="top-left">Top Left</option>
+            <option value="top-right">Top Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="bottom-right">Bottom Right</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label for="products">Products:</label>
+          <select id="products">
+            <option value="2">2 Products</option>
+            <option value="4" selected>4 Products</option>
+            <option value="6">6 Products</option>
+          </select>
+        </div>
+        
+        <button id="show-popup">Show Popup</button>
+      </div>
+      
+      <h2>Behavior Tracker</h2>
+      <div class="controls">
+        <button id="enable-tracker">Enable Behavior Tracker</button>
+        <button id="disable-tracker">Disable Tracker</button>
+      </div>
+      
+      <div class="content">
+        <h3>Scroll down to trigger popup</h3>
+        <p>The behavior tracker will automatically trigger a popup when you scroll 70% down the page, when you show exit intent (move mouse out of the top of the page), or after 5 seconds.</p>
+        
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, quis aliquam nisl nunc quis nisl.</p>
+        
+        <p>Scroll down to see the popup trigger in action...</p>
+        
+        <!-- More content to enable scrolling -->
+        <div style="height: 1500px; background: linear-gradient(180deg, #f9fafb 0%, #e5e7eb 100%); padding: 20px; border-radius: 8px; margin-top: 20px;">
+          <h3>Scroll Trigger Zone</h3>
+          <p>When you reach this area, the scroll trigger should activate.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load scripts -->
+  <script src="popup-rendering-engine.js"></script>
+  <script src="popup-behavior-tracker.js"></script>
+  
+  <script>
+    // Mock recommendations data
+    const mockRecommendations = [
+      {
+        id: 'product1',
+        title: 'Wireless Noise-Cancelling Headphones',
+        price: '$249.99',
+        originalPrice: '$299.99',
+        description: 'Premium wireless headphones with active noise cancellation',
+        affiliateLink: 'https://example.com/product1',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300',
+        category: 'Electronics',
+        rating: 4.7,
+        discount: '-17%'
+      },
+      {
+        id: 'product2',
+        title: 'Smart Fitness Watch',
+        price: '$179.99',
+        description: 'Track your fitness goals with this advanced smartwatch',
+        affiliateLink: 'https://example.com/product2',
+        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300',
+        category: 'Fitness',
+        rating: 4.5
+      },
+      {
+        id: 'product3',
+        title: 'Portable Bluetooth Speaker',
+        price: '$89.99',
+        originalPrice: '$129.99',
+        description: 'Waterproof portable speaker with 20-hour battery life',
+        affiliateLink: 'https://example.com/product3',
+        image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=300',
+        category: 'Audio',
+        rating: 4.2,
+        discount: '-30%'
+      },
+      {
+        id: 'product4',
+        title: 'Ergonomic Office Chair',
+        price: '$299.99',
+        description: 'Comfortable chair with lumbar support for long work hours',
+        affiliateLink: 'https://example.com/product4',
+        image: 'https://images.unsplash.com/photo-1505843490701-5be5d1b31f8f?w=300',
+        category: 'Home Office',
+        rating: 4.8
+      },
+      {
+        id: 'product5',
+        title: 'Ultra-Thin Laptop',
+        price: '$1,299.99',
+        originalPrice: '$1,499.99',
+        description: 'Powerful laptop with all-day battery life',
+        affiliateLink: 'https://example.com/product5',
+        image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300',
+        category: 'Computers',
+        rating: 4.6,
+        discount: '-13%'
+      },
+      {
+        id: 'product6',
+        title: 'Professional Camera Kit',
+        price: '$899.99',
+        description: 'DSLR camera with multiple lenses and accessories',
+        affiliateLink: 'https://example.com/product6',
+        image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300',
+        category: 'Photography',
+        rating: 4.9
+      }
+    ];
+
+    // Initialize popup renderer
+    const renderer = new PopupRenderingEngine({
+      enableAnimations: true,
+      enableAnalytics: true,
+      autoCloseDelay: 60000 // 1 minute
+    });
+
+    // Initialize behavior tracker
+    let behaviorTracker = null;
+
+    // Set up demo controls
+    document.getElementById('show-popup').addEventListener('click', () => {
+      const theme = document.getElementById('theme').value;
+      const position = document.getElementById('position').value;
+      const productCount = parseInt(document.getElementById('products').value);
+      
+      renderer.renderPopup(mockRecommendations.slice(0, productCount), {
+        title: 'Recommended Products',
+        description: 'Hand-picked products just for you',
+        theme,
+        position
+      });
+    });
+
+    document.getElementById('enable-tracker').addEventListener('click', () => {
+      if (behaviorTracker) {
+        behaviorTracker.destroy();
+      }
+      
+      // Set mock content ID for demo
+      window.currentContentId = 'demo-content-123';
+      
+      behaviorTracker = new PopupBehaviorTracker({
+        enableLogging: true,
+        contentId: window.currentContentId
+      });
+      
+      behaviorTracker.init();
+      alert('Behavior tracker enabled. Scroll down, wait 5 seconds, or move your mouse out of the page to trigger a popup.');
+    });
+
+    document.getElementById('disable-tracker').addEventListener('click', () => {
+      if (behaviorTracker) {
+        behaviorTracker.destroy();
+        behaviorTracker = null;
+        alert('Behavior tracker disabled.');
+      }
+    });
+
+    // Listen for popup trigger messages
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'SHOW_POPUP') {
+        const { contentId, triggerType } = event.data;
+        console.log(`Received popup trigger: ${triggerType} for content: ${contentId}`);
+        
+        // Show popup with mock recommendations
+        const productCount = parseInt(document.getElementById('products').value);
+        const theme = document.getElementById('theme').value;
+        const position = document.getElementById('position').value;
+        
+        renderer.renderPopup(mockRecommendations.slice(0, productCount), {
+          title: `Triggered by ${triggerType}`,
+          description: 'These products match your interests',
+          theme,
+          position
+        });
+      }
+    });
+  </script>
+</body>
+</html>
