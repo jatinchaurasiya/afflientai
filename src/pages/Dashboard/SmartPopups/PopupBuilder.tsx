@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Palette, Eye, Settings, Zap, Play, Pause, BarChart3, Code, Plus } from 'lucide-react';
+import { Palette, Eye, Settings, Zap, Play, Pause, BarChart3, Code, Plus, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { useAuthStore } from '../../../store/authStore';
