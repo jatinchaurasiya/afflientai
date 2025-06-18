@@ -1,3 +1,4 @@
+/* Popup Rendering Engine Styles */
 .aai-popup {
   position: fixed;
   top: 0;
@@ -10,14 +11,9 @@
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.aai-popup-show {
+.aai-popup-visible {
   opacity: 1;
   visibility: visible;
-}
-
-.aai-popup-hide {
-  opacity: 0;
-  visibility: hidden;
 }
 
 .aai-popup-overlay {
@@ -31,124 +27,401 @@
 
 .aai-popup-content {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   width: 90%;
-  max-width: 400px;
+  max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
   padding: 24px;
+  margin: 20px;
 }
 
-.aai-close {
+/* Positioning variants */
+.aai-position-center .aai-popup-content {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.aai-position-top .aai-popup-content {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.aai-position-bottom .aai-popup-content {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.aai-position-left .aai-popup-content {
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.aai-position-right .aai-popup-content {
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.aai-position-top-left .aai-popup-content {
+  top: 20px;
+  left: 20px;
+}
+
+.aai-position-top-right .aai-popup-content {
+  top: 20px;
+  right: 20px;
+}
+
+.aai-position-bottom-left .aai-popup-content {
+  bottom: 20px;
+  left: 20px;
+}
+
+.aai-position-bottom-right .aai-popup-content {
+  bottom: 20px;
+  right: 20px;
+}
+
+/* Header styles */
+.aai-popup-header {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.aai-close-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 0;
+  right: 0;
   background: none;
   border: none;
   font-size: 24px;
   cursor: pointer;
   color: #666;
+  padding: 4px;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.aai-close-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.aai-close-btn:focus {
+  outline: 2px solid #4F46E5;
+  outline-offset: 2px;
 }
 
 .aai-popup-title {
-  margin: 0 0 16px 0;
-  font-size: 20px;
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.aai-popup-description {
+  margin: 0;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+/* Products grid */
+.aai-products-grid {
+  display: grid;
+  grid-gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Product card */
+.aai-product-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.aai-product-card:hover,
+.aai-card-hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.aai-product-card:focus,
+.aai-card-focus {
+  outline: 2px solid #4F46E5;
+  outline-offset: 2px;
+}
+
+.aai-product-card:active,
+.aai-card-active {
+  transform: scale(0.98);
+}
+
+.aai-product-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Image container */
+.aai-image-container {
+  position: relative;
+  padding-top: 75%; /* 4:3 aspect ratio */
+  background-color: #f3f4f6;
+  overflow: hidden;
+}
+
+.aai-product-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s, transform 0.3s;
+  opacity: 0;
+}
+
+.aai-product-image.loaded {
+  opacity: 1;
+}
+
+.aai-image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.aai-discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ef4444;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.aai-products {
-  display: grid;
-  grid-gap: 16px;
-  margin-bottom: 16px;
-}
-
-.aai-product {
-  display: flex;
-  text-decoration: none;
-  color: inherit;
-  border: 1px solid #eee;
-  border-radius: 8px;
+/* Product details */
+.aai-product-details {
   padding: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.aai-product:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.aai-product-category {
+  display: inline-block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.aai-product img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.aai-details {
-  margin-left: 12px;
-  flex: 1;
-}
-
-.aai-details h4 {
+.aai-product-title {
   margin: 0 0 8px 0;
   font-size: 16px;
   font-weight: 500;
+  color: #1f2937;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.aai-price {
+/* Price section */
+.aai-price-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aai-current-price {
   font-weight: 600;
   color: #4F46E5;
+  font-size: 16px;
 }
 
-.aai-footer {
-  text-align: center;
-  margin-top: 16px;
+.aai-original-price {
+  font-size: 14px;
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+/* Rating display */
+.aai-rating {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.aai-star {
+  color: #f59e0b;
+  font-size: 16px;
+}
+
+.aai-star-empty {
+  color: #d1d5db;
+}
+
+.aai-rating-text {
+  margin-left: 4px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Footer */
+.aai-popup-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.aai-disclaimer {
   font-size: 12px;
-  color: #666;
+  color: #6b7280;
 }
 
-@media (max-width: 480px) {
+.aai-branding {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Theme variants */
+.aai-theme-dark .aai-popup-content {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+.aai-theme-dark .aai-popup-title {
+  color: #f9fafb;
+}
+
+.aai-theme-dark .aai-popup-description {
+  color: #d1d5db;
+}
+
+.aai-theme-dark .aai-product-card {
+  border-color: #374151;
+  background-color: #111827;
+}
+
+.aai-theme-dark .aai-product-title {
+  color: #f9fafb;
+}
+
+.aai-theme-dark .aai-product-category {
+  color: #9ca3af;
+}
+
+.aai-theme-dark .aai-image-placeholder {
+  background: linear-gradient(110deg, #2a2f3a 8%, #374151 18%, #2a2f3a 33%);
+}
+
+.aai-theme-dark .aai-close-btn {
+  color: #d1d5db;
+}
+
+.aai-theme-dark .aai-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.aai-theme-dark .aai-popup-footer {
+  border-color: #374151;
+}
+
+.aai-theme-dark .aai-disclaimer,
+.aai-theme-dark .aai-branding {
+  color: #9ca3af;
+}
+
+/* Minimal theme */
+.aai-theme-minimal .aai-popup-content {
+  padding: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.aai-theme-minimal .aai-popup-title {
+  font-size: 20px;
+}
+
+.aai-theme-minimal .aai-popup-description {
+  font-size: 14px;
+}
+
+.aai-theme-minimal .aai-products-grid {
+  grid-gap: 12px;
+}
+
+.aai-theme-minimal .aai-product-details {
+  padding: 8px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
   .aai-popup-content {
     width: 95%;
     padding: 16px;
+    max-width: none;
   }
   
-  .aai-product img {
-    width: 60px;
-    height: 60px;
+  .aai-products-grid {
+    grid-template-columns: 1fr !important;
   }
   
-  .aai-details h4 {
+  .aai-popup-title {
+    font-size: 20px;
+  }
+  
+  .aai-popup-description {
     font-size: 14px;
+  }
+  
+  .aai-popup-footer {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .aai-popup-content {
-    background-color: #1f2937;
-    color: #f9fafb;
-  }
-  
-  .aai-close {
-    color: #d1d5db;
-  }
-  
-  .aai-product {
-    border-color: #374151;
-  }
-  
-  .aai-price {
-    color: #60a5fa;
-  }
-  
-  .aai-footer {
-    color: #9ca3af;
-  }
+/* Accessibility focus styles */
+.aai-popup *:focus-visible {
+  outline: 2px solid #4F46E5;
+  outline-offset: 2px;
+}
+
+/* Animation for image error fallback */
+.aai-image-error {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
