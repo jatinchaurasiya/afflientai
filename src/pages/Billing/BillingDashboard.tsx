@@ -3,9 +3,12 @@ import { CreditCard, DollarSign, Download, ChevronDown, ChevronRight, AlertCircl
 import Button from '../../components/ui/Button';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { motion } from 'framer-motion';
+import { checkoutService } from '../../lib/checkoutService';
+import CheckoutForm from '../../components/payment/CheckoutForm';
 
 const BillingDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('payouts');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   
   // Mock data - would be fetched from API in real app
   const payouts = [
@@ -58,6 +61,15 @@ const BillingDashboard: React.FC = () => {
           </span>
         );
     }
+  };
+
+  const handlePaymentSuccess = (paymentId: string) => {
+    console.log('Payment successful:', paymentId);
+    setShowPaymentForm(false);
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
   };
 
   return (
@@ -315,17 +327,60 @@ const BillingDashboard: React.FC = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400">Chase Bank · **** 1234</p>
                   </div>
                 </div>
-                <button className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+                <button 
+                  className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                  onClick={() => setShowPaymentForm(true)}
+                >
                   Edit
                 </button>
               </div>
               
-              <button className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              <button 
+                className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                onClick={() => setShowPaymentForm(true)}
+              >
                 <CreditCard size={16} className="mr-2" />
                 Add Payment Method
               </button>
             </div>
           </div>
+          
+          {showPaymentForm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Add Payment Method
+                  </h3>
+                  <button
+                    onClick={() => setShowPaymentForm(false)}
+                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <CheckoutForm
+                  amount={0}
+                  currency="USD"
+                  description="Add payment method"
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                />
+              </motion.div>
+            </motion.div>
+          )}
           
           <div className="bg-white dark:bg-gray-800 overflow-hidden rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
