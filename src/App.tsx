@@ -23,6 +23,7 @@ import WebsiteIntegration from './pages/Dashboard/Websites/WebsiteIntegration';
 import PopupBuilder from './pages/Dashboard/SmartPopups/PopupBuilder';
 import AIRecommendationsDashboard from './pages/Dashboard/AIRecommendations/AIRecommendationsDashboard';
 import AffiliateAccountsPage from './pages/Dashboard/AffiliateAccounts/AffiliateAccountsPage';
+import CheckoutPage from './pages/Checkout/CheckoutPage';
 
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
 
@@ -55,6 +56,7 @@ function App() {
           <Route index element={<LandingPage />} />
           <Route path="signin" element={<SignInForm />} />
           <Route path="signup" element={<SignUpForm />} />
+          <Route path="checkout" element={<CheckoutPage />} />
         </Route>
         
         {/* Protected routes */}
