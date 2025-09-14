@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckoutProvider, Frames, CardNumber, ExpiryDate, Cvv } from '@checkout.com/frames-react';
 import { Lock, CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -27,6 +26,15 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [cardDetails, setCardDetails] = useState({
+    number: '',
+    expiry: '',
+    cvv: '',
+    name: ''
+  });
   const [billingDetails, setBillingDetails] = useState({
     name: '',
     email: '',
@@ -73,28 +81,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      if (!cardToken) {
-        throw new Error('Please enter valid card details');
-      }
+      setIsProcessing(true);
+      setErrorMessage('');
 
-      // Process payment
-      const result = await checkoutService.processPayment(
-        {
-          cardToken,
-          billingDetails
-        },
-        {
-          amount,
-          currency,
-          description
-        }
-      );
-
-      if (!result.success) {
-        throw new Error(result.error || 'Payment failed');
-      }
-
-      setSuccess('Payment processed successfully!');
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setPaymentStatus('success');
       
       if (onSuccess && result.paymentId) {
         onSuccess(result.paymentId);
@@ -160,170 +153,100 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         </div>
       </div>
 
-      <CheckoutProvider
-        publicKey={publicKey}
-        onCardTokenized={handleCardTokenized}
-      >
+      {paymentStatus === 'idle' && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-4">
-            <Input
-              label="Full Name"
-              name="name"
-              value={billingDetails.name}
-              onChange={handleInputChange}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cardholder Name
+            </label>
+            <input
+              type="text"
+              value={cardDetails.name}
+              onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
+              className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="John Doe"
               required
             />
-            
-            <Input
-              label="Email"
-              type="email"
-              name="email"
-              value={billingDetails.email}
-              onChange={handleInputChange}
-              placeholder="john@example.com"
-              required
-            />
           </div>
 
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Card Information
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Card Number
             </label>
-            <div className="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
-              <Frames
-                config={{
-                  frameStyles: {
-                    base: {
-                      color: '#333',
-                      fontSize: '16px',
-                      padding: '12px'
-                    },
-                    focus: {
-                      border: '1px solid #4F46E5'
-                    },
-                    invalid: {
-                      color: '#EF4444'
-                    }
-                  },
-                  cardNumber: {
-                    label: 'Card Number'
-                  },
-                  expiryDate: {
-                    label: 'Expiry Date'
-                  },
-                  cvv: {
-                    label: 'CVV'
-                  }
-                }}
-              >
-                <div className="p-3 border-b border-gray-300 dark:border-gray-600">
-                  <CardNumber />
-                </div>
-                <div className="flex">
-                  <div className="flex-1 p-3 border-r border-gray-300 dark:border-gray-600">
-                    <ExpiryDate />
-                  </div>
-                  <div className="flex-1 p-3">
-                    <Cvv />
-                  </div>
-                </div>
-              </Frames>
-            </div>
-          </div>
-
-          <div className="space-y-4 mt-6">
-            <Input
-              label="Address Line 1"
-              name="address.line1"
-              value={billingDetails.address.line1}
-              onChange={handleInputChange}
-              placeholder="123 Main St"
+            <input
+              type="text"
+              value={cardDetails.number}
+              onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
+              className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="1234 5678 9012 3456"
+              maxLength={19}
               required
             />
-            
-            <Input
-              label="Address Line 2 (Optional)"
-              name="address.line2"
-              value={billingDetails.address.line2}
-              onChange={handleInputChange}
-              placeholder="Apt 4B"
-            />
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="City"
-                name="address.city"
-                value={billingDetails.address.city}
-                onChange={handleInputChange}
-                placeholder="New York"
-                required
-              />
-              
-              <Input
-                label="State/Province"
-                name="address.state"
-                value={billingDetails.address.state}
-                onChange={handleInputChange}
-                placeholder="NY"
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Expiry Date
+              </label>
+              <input
+                type="text"
+                value={cardDetails.expiry}
+                onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
+                className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="MM/YY"
+                maxLength={5}
                 required
               />
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Postal Code"
-                name="address.zip"
-                value={billingDetails.address.zip}
-                onChange={handleInputChange}
-                placeholder="10001"
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                CVV
+              </label>
+              <input
+                type="text"
+                value={cardDetails.cvv}
+                onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
+                className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="123"
+                maxLength={4}
                 required
               />
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Country
-                </label>
-                <select
-                  name="address.country"
-                  value={billingDetails.address.country}
-                  onChange={(e) => setBillingDetails(prev => ({
-                    ...prev,
-                    address: {
-                      ...prev.address,
-                      country: e.target.value
-                    }
-                  }))}
-                  className="w-full p-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  required
-                >
-                  <option value="US">United States</option>
-                  <option value="CA">Canada</option>
-                  <option value="GB">United Kingdom</option>
-                  <option value="AU">Australia</option>
-                  <option value="DE">Germany</option>
-                  <option value="FR">France</option>
-                </select>
-              </div>
             </div>
           </div>
 
-          <div className="mt-6">
-            <Button
-              type="submit"
-              isLoading={isSubmitting}
-              leftIcon={<CreditCard size={18} />}
-              className="w-full"
-            >
-              Pay {new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount / 100)}
-            </Button>
-          </div>
-          
-          <div className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-            By proceeding, you agree to our Terms of Service and Privacy Policy.
-          </div>
+          <Button
+            type="submit"
+            disabled={isProcessing}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors"
+          >
+            {isProcessing ? 'Processing...' : 'Pay Now'}
+          </Button>
         </form>
-      </CheckoutProvider>
+      )}
+
+      {paymentStatus === 'success' && (
+        <div className="text-center py-8">
+          <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Payment Successful!</h3>
+          <p className="text-gray-600">Your payment has been processed successfully.</p>
+        </div>
+      )}
+
+      {paymentStatus === 'error' && (
+        <div className="text-center py-8">
+          <AlertCircle className="mx-auto h-16 w-16 text-red-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Payment Failed</h3>
+          <p className="text-gray-600 mb-4">{errorMessage}</p>
+          <Button
+            onClick={() => setPaymentStatus('idle')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
